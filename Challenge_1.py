@@ -21,45 +21,47 @@ class AutomatedPipeline():
         DataSetCleaned=DataSet.dropna()
         DataSetCleaned = DataSetCleaned[(DataSetCleaned.x * DataSetCleaned.y * DataSetCleaned.z != 0) & (DataSetCleaned.price > 0)]
         DataSetCleaned = DataSetCleaned.drop(columns=['depth', 'table', 'y', 'z'])
-        self.DataSet=DataSetCleaned
-        print(self.DataSet)
+        self.DataSetOriginal=DataSetCleaned
         
     def TrainTestSplit(self,Dummy=True):
         if Dummy:
-            self.DataSet = pd.get_dummies(self.DataSet, columns=['cut', 'color', 'clarity'], drop_first=True)
-        x=self.DataSet.drop(columns='price')
-        print(x)
-        y=self.DataSet.price
-        print(y)
-        self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(x, y, test_size=0.2, random_state=42)
+            DataSet = pd.get_dummies(self.DataSetOriginal, columns=['cut', 'color', 'clarity'], drop_first=True)
+        else:
+            DataSet=self.DataSetOriginal
+        x=DataSet.drop(columns='price')
+        y=DataSet.price
+        return (train_test_split(x, y, test_size=0.2, random_state=42))
 
     def LinearRegression(self):
-        self.TrainTestSplit(Dummy=True)
-        y_train_log = np.log(self.y_train)
-        print(y_train_log)
+        x_train,x_test,y_train,y_test = self.TrainTestSplit(Dummy=True)
+        y_train_log = np.log(y_train)
         reg = LinearRegression()
-        reg.fit(self.x_train, y_train_log)
-        pred_log= reg.predict(self.x_test)
+        reg.fit(x_train, y_train_log)
+        pred_log= reg.predict(x_test)
         pred= np.exp(pred_log)
 
-        MAE=round(mean_absolute_error(self.y_test, pred), 2)
-        R2_score=round(r2_score(self.y_test, pred), 4)
+        MAE=round(mean_absolute_error(y_test, pred), 2)
+        R2_score=round(r2_score(y_test, pred), 4)
         print(MAE)
         print(R2_score)
 
     
     def PolinomialRegression(self):
-        y_train_log = np.log(self.y_train)
-        # Create polynomial features with degree 3
+        x_train,x_test,y_train,y_test = self.TrainTestSplit(Dummy=True)
+        y_train_log = np.log(y_train)
+        # Create polynomial features with degree 3 for Test and Train input dataset
         polynomial_features = PolynomialFeatures(degree=3)
-        x_poly = polynomial_features.fit_transform(self.x_train)
+        x_train_poly = polynomial_features.fit_transform(x_train)
+        x_test_poly = polynomial_features.fit_transform(x_test)
         poliReg = LinearRegression()
-        poliReg.fit(x_poly,y_train_log)
-        poly_pred_log = model.predict(self.x_test)
+        poliReg.fit(x_train_poly,y_train_log)
+        poly_pred_log = poliReg.predict(x_test_poly)
         poly_pred=np.exp(poly_pred_log)
 
-        MAE=round(mean_absolute_error(self.y_test, pred), 2)
-        R2_score=round(r2_score(self.y_test, pred), 4)
+        MAE=round(mean_absolute_error(y_test, poly_pred), 2)
+        R2_score=round(r2_score(y_test, poly_pred), 4)
+        print(MAE)
+        print(R2_score)
 
 
 
@@ -69,3 +71,4 @@ if __name__ == '__main__':
     Pipeline=AutomatedPipeline("/home/elios/Desktop/xteam_git/xtream-ai-assignment-developer/data/diamonds.csv")
     Pipeline.LoadDataset()
     Pipeline.LinearRegression()
+    Pipeline.PolinomialRegression()
