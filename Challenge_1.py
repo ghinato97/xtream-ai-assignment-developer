@@ -8,6 +8,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score, mean_absolute_error
 from sklearn.preprocessing import PolynomialFeatures
+import pickle 
+
 
 
 class AutomatedPipeline():
@@ -16,7 +18,7 @@ class AutomatedPipeline():
 
     def LoadDataset(self):
         DataSet=pd.read_csv(self.DataSetPath)
-
+      
         #Remove row where na appears
         DataSetCleaned=DataSet.dropna()
         DataSetCleaned = DataSetCleaned[(DataSetCleaned.x * DataSetCleaned.y * DataSetCleaned.z != 0) & (DataSetCleaned.price > 0)]
@@ -37,14 +39,20 @@ class AutomatedPipeline():
         y_train_log = np.log(y_train)
         reg = LinearRegression()
         reg.fit(x_train, y_train_log)
-        pred_log= reg.predict(x_test)
-        pred= np.exp(pred_log)
+        pred_log = reg.predict(x_test)
+        pred = np.exp(pred_log)
 
-        MAE=round(mean_absolute_error(y_test, pred), 2)
-        R2_score=round(r2_score(y_test, pred), 4)
+        MAE = round(mean_absolute_error(y_test, pred), 2)
+        R2_score = round(r2_score(y_test, pred), 4)
         print(MAE)
         print(R2_score)
 
+        with open('/home/elios/Desktop/xteam_git/xtream-ai-assignment-developer/LinearRegression.pkl','wb') as f:
+            pickle.dump(reg,f)
+        
+        allColumn = list(x_test.columns)
+        DataFrameToSave=pd.DataFrame(columns=allColumn)
+        DataFrameToSave.to_csv('/home/elios/Desktop/xteam_git/xtream-ai-assignment-developer/DataFrameVoid.csv')
     
     def PolinomialRegression(self):
         x_train,x_test,y_train,y_test = self.TrainTestSplit(Dummy=True)

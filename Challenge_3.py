@@ -1,0 +1,91 @@
+#Elios Ghinato 19/06/2024  
+#Challenge 3
+
+
+
+#Cherrypy as Web Framework
+import cherrypy 
+import pandas as pd
+import pickle
+
+
+
+class RestApi(object):
+    exposed=True
+    def __init__(self,DataSetPath,voidDataSet,ModelPath):
+        #parameter that need to be used for the search of similarity
+        similarity_label=["carat","cut", "color","clarity","number"]
+        similarity_label.sort()
+        self.similarityLabel=similarity_label
+
+        #parameter that nned to be used for the regression
+        regression_labels=["carat","cut","color","clarity","x"]
+        regression_labels.sort()
+        self.regressionLabel=regression_labels
+
+        #Load Dataset
+        self.DataSet=pd.read_csv(DataSetPath)
+        self.voidDataset=pd.read_csv(voidDataSet)
+
+
+        #Load Predictive Model
+        with open('/home/elios/Desktop/xteam_git/xtream-ai-assignment-developer/LinearRegression.pkl', 'rb') as f:
+            self.RegressionModel = pickle.load(f)
+
+    def GET(self,*uri,**params):
+        if uri[0]=='regression':
+            key=list(params.keys())
+            key.sort()
+            if (key==self.regressionLabel):
+                price=self.Regression(params)
+                return price
+            else:
+                return "parameter input error"
+
+        if uri[0]=="similar":
+            key=list(params.keys())
+            key.sort()
+            if (key==self.similarityLabel):
+                htmlDataFrame=self.SimilaritySearch(params)
+                return htmlDataFrame
+            else:
+                return "Parameter Input Error"
+        else:
+            return "uri not correct"
+    
+    def Regression(self,params):
+        params["carat"]=float(params["carat"])
+        params["x"]=float(params["x"])
+        print(params)
+    
+    def SimilaritySearch(self,params):
+        itemNumber2search=int(params["number"])
+        carat=float(params["carat"])
+        cut=params["cut"]
+        color=params["color"]
+        clarity=params["clarity"]
+        miniDataSet=self.DataSet[(self.DataSet.cut==cut)&(self.DataSet.color==color)&(self.DataSet.clarity==clarity)]
+        miniDataSet=miniDataSet.iloc[(miniDataSet['carat']-carat).abs().argsort()[:itemNumber2search]]
+        if miniDataSet.empty:
+            strinError="No match fund"
+            return strinError
+        else:
+            return miniDataSet.to_html()
+
+
+  
+
+
+if __name__=="__main__":
+
+  dataSetPath="/home/elios/Desktop/xteam_git/xtream-ai-assignment-developer/data/diamonds.csv"
+  voidDataSet="/home/elios/Desktop/xteam_git/xtream-ai-assignment-developer/data/DataFrameVoid.csv"
+  modelPath=""
+  conf={
+          '/':{
+                'request.dispatch':cherrypy.dispatch.MethodDispatcher(),
+                'tool.session.on':True
+               }
+        }
+  cherrypy.config.update({'server.socket_port':8090})
+  cherrypy.quickstart(RestApi(dataSetPath,voidDataSet,modelPath),'/',conf)
