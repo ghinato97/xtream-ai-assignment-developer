@@ -53,6 +53,7 @@ class RestApi(object):
         else:
             return "uri not correct"
     
+    # the regression is done with the best model of 
     def Regression(self,params):
         params["carat"]=float(params["carat"])
         params["x"]=float(params["x"])

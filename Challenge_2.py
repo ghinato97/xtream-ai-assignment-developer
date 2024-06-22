@@ -36,6 +36,9 @@ class AutomatedPipeline2():
             DataSet_xgb['clarity'] = pd.Categorical(DataSet['clarity'], categories=['IF', 'VVS1', 'VVS2', 'VS1', 'VS2', 'SI1', 'SI2', 'I1'], ordered=True)
             self.DataSetLoaded = DataSet_xgb
 
+    def SaveModel(self,model,nameToSave):
+        with open('/home/elios/Desktop/xteam_git/xtream-ai-assignment-developer/LinearRegression.pkl','wb') as f:
+            pickle.dump(model,f)
 
     def TrainTestSplit(self,Dummy=False):
         if Dummy:
@@ -106,6 +109,10 @@ class AutomatedPipeline2():
             xgb_opt = xgboost.XGBRegressor(**study.best_params, enable_categorical=True, random_state=42)
             xgb_opt.fit(self.x_train_xbg, self.y_train_xbg)
             xgb_opt_pred = xgb_opt.predict(x_test_xbg)
+            MAE=round(mean_absolute_error(y_test_xbg, xgb_opt_pred), 2)
+            R2_score=round(r2_score(y_test_xbg, xgb_opt_pred), 4)
+            print(MAE)
+            print(R2_score)
         else:
             xgb = xgboost.XGBRegressor(enable_categorical=True, random_state=42)
             xgb.fit(self.x_train_xbg, self.y_train_xbg)
@@ -121,7 +128,7 @@ class AutomatedPipeline2():
 
         
 if __name__ == '__main__':
-    Pipeline=AutomatedPipeline2("/home/elios/Desktop/xteam_git/xtream-ai-assignment-developer/data/diamonds.csv")
+    Pipeline=AutomatedPipeline2("/home/elios/Desktop/xteam_git/xtream-ai-assignment-developer/data/diamonds.csv",SaveModel=True)
     #Pipeline.LinearRegression()
     Pipeline.GradientBoosting(OptunaHyperTuning=True)
 
