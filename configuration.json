@@ -1,0 +1,6 @@
+{
+  "Diamond_csv_path" : "",
+  "Performance_csv_Path" : "/home/elios/Desktop/performance.csv",
+  "Models_to_Perform" : ["LinearRegression",
+											"GradientBoosting"]
+}
