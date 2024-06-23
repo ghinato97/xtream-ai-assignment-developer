@@ -68,8 +68,18 @@ Observability is key. Save every request and response made to the APIs to a **pr
 ---
 
 ## How to run
-First at all we need to install all the library that we need.
+At first we need to clone the repository in a folder using ( is recommended to create a separete python enviroment or an ananconda enviroment)
+```
+git clone git@github.com:ghinato97/xtream-ai-assignment-developer.git
+
+```
+One the repository is create we need to install all the requiremts
 ```
 pip install -r /path/to/requirements.txt
 
 ```
+** Challenge 1 and 2**
+I merged the challenge 1 and 2 in only one script that is AutomationPipeline.py
+
+
+
