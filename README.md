@@ -80,15 +80,16 @@ pip install -r /path/to/requirements.txt
 ```
 **Challenge 1 and 2**
 I merged the challenge 1 and 2 in only one script that is AutomationPipeline.py
+
 At first we need to modify the configuarion.json file.
 
 ```json
 {
-  "Diamond_csv_path" : "",
-  "Performance_csv_Path" : "/home/elios/Desktop/performance.csv",
-  "Models_to_Perform" : ["LinearRegression",
-											"GradientBoosting"]
+  "Diamond_csv_path" : "",                                                        Path of the Diamond.csv for traing. If not setted the default path is used
+  "Performance_csv_Path" : "/home/elios/Desktop/performance.csv",                 Path of the Performace,csv for save the model's performance. If not setted default path is used
+  "Models_to_Perform" : ["LinearRegression",					  Model that we want to perform. We use : LinearRegression,PolinomialRegression,LassoCVRegression,GradientBoosting,GradientBoosting_HyperTuning
+			"GradientBoosting"]
 }
  
-
+D
 
