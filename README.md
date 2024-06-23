@@ -78,8 +78,17 @@ One the repository is create we need to install all the requiremts
 pip install -r /path/to/requirements.txt
 
 ```
-** Challenge 1 and 2**
+**Challenge 1 and 2**
 I merged the challenge 1 and 2 in only one script that is AutomationPipeline.py
+At first we need to modify the configuarion.json file.
 
+```json
+{
+  "Diamond_csv_path" : "",
+  "Performance_csv_Path" : "/home/elios/Desktop/performance.csv",
+  "Models_to_Perform" : ["LinearRegression",
+											"GradientBoosting"]
+}
+ 
 
 
