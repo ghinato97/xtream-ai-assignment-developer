@@ -37,20 +37,20 @@ class RestApi(object):
 
 
     def GET(self,*uri,**params):
-        if uri[0]=='regression':
+        if uri[0] == 'regression':
             key=list(params.keys())
             key.sort()
-            if (key==self.regressionLabel):
-                price=self.Regression(params)
+            if (key == self.regressionLabel):
+                price = self.Regression(params)
                 return str(price)
             else:
                 return "parameter input error"
 
-        if uri[0]=="similar":
+        if uri[0] == "similar":
             key=list(params.keys())
             key.sort()
-            if (key==self.similarityLabel):
-                htmlDataFrame=self.SimilaritySearch(params)
+            if (key == self.similarityLabel):
+                htmlDataFrame = self.SimilaritySearch(params)
                 return htmlDataFrame
             else:
                 return "Parameter Input Error"
@@ -61,6 +61,10 @@ class RestApi(object):
     
     
     def Regression(self,params):
+       errorFlag , errorParameter = CheckParamaterRegression(self.DataSet,params)
+       if errorFlag:
+            strinError = "Error with " + errorParameter + " parameters input"
+            return strinError
        DataSet=CreateDataSet(params)
        regressionModel = LoadModel()
        price=regressionModel.predict(DataSet)
@@ -70,15 +74,9 @@ class RestApi(object):
 
 
 
-
-
-
-
-
     def SimilaritySearch(self,params):
 
         errorFlag , errorParameter = CheckParamaterSimilarity(self.DataSet,params)
-        print(errorFlag)
 
         if errorFlag:
             strinError = "Error with " + errorParameter + " parameters input"

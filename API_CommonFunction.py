@@ -3,7 +3,7 @@ import os
 import pickle
 from Challenge_2 import ModelRegression
 
-
+    
 def CreateDataSet(params):
     # carat', 'cut', 'color', 'clarity', 'depth', 'table', 'x', 'y', 'z' is the order of the columns
     params["carat"] = float(params["carat"])
@@ -28,12 +28,6 @@ def CreateDataSet(params):
 
 
 
-
-
-
-
-
-    
 def CheckParamaterSimilarity(DataSet,Paramater):
     cutValues = list(DataSet['cut'].unique())
     cutValues = [x.upper() for x in cutValues ]
@@ -63,6 +57,53 @@ def CheckParamaterSimilarity(DataSet,Paramater):
     return (False, "")
 
 
+def CheckParamaterRegression(DataSet,Paramater):
+    cutValues = list(DataSet['cut'].unique())
+    cutValues = [x.upper() for x in cutValues ]
+    if not (Paramater["cut"].upper() in cutValues):
+        return (True,"cut")
+
+    clarityValues = list(DataSet['clarity'].unique())
+    clarityValues = [x.upper() for x in clarityValues]
+    if not (Paramater["clarity"].upper() in clarityValues):
+        return (True,"clarity")
+
+    colorValues = list(DataSet['color'].unique())
+    colorValues = [x.upper() for x in colorValues]
+    if not (Paramater["color"].upper() in colorValues):
+        return (True,"color")
+    
+    try:
+        carat = float(Paramater["carat"])
+    except:
+        return (True,"carat")
+    
+    try:
+        carat = float(Paramater["x"])
+    except:
+        return (True,"x")
+    
+    try:
+        carat = float(Paramater["y"])
+    except:
+        return (True,"y")
+    
+    try:
+        carat = float(Paramater["z"])
+    except:
+        return (True,"z")
+    
+    try:
+        carat = float(Paramater["table"])
+    except:
+        return (True,"table")
+    
+    try:
+        carat = float(Paramater["depth"])
+    except:
+        return (True,"depth")
+    
+    return (False, "")
 
 
 # If the model is not find in the path, it try in the default model folder and if there is no model 
