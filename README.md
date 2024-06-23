@@ -68,4 +68,8 @@ Observability is key. Save every request and response made to the APIs to a **pr
 ---
 
 ## How to run
-Please fill this section as part of the assignment.
+First at all we need to install all the library that we need.
+```
+pip install -r /path/to/requirements.txt
+
+```
