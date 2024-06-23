@@ -3,65 +3,152 @@
 
 import os
 import pandas as pd
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression,LassoCV
+from sklearn.metrics import r2_score, mean_absolute_error
+from sklearn.preprocessing import PolynomialFeatures
 from sklearn.metrics import r2_score, mean_absolute_error
 import xgboost
-import sklearn
+import numpy as np
 import optuna
+import time
+from CommonFunction import *
 
 
 
 
-class AutomatedPipeline2():
-    def __init__(self,DataSetPath):
+class ModelRegression():
+    def __init__(self,DiamondData="",PerformancePath=""):
+
+        if DiamondData=="":
+            #the  Dataset is supposed to be inside a folder called "Data" located in the same folder of the script
+            generalDirectory = os.path.dirname(os.path.abspath(__file__))
+            DataSetPath=os.path.join(generalDirectory,"data/diamonds.csv")
+        else:
+            DataSetPath=DiamondData
+
         #load and remove row where na appears
-        DataSet=pd.read_csv(DataSetPath)
-        DataSet=DataSet.dropna()
+        DataSet = pd.read_csv(DataSetPath)
+        DataSet = DataSet.dropna()
         #remove nonsense data 
         self.DataSetOriginal = DataSet[(DataSet.x * DataSet.y * DataSet.z != 0) & (DataSet.price > 0)]
-
-
-
-    def LoadDataset(self,CollinearityFilter=False,CategoricalFileter=False):
-        DataSet=self.DataSetOriginal
-        if CollinearityFilter: #For LinearRegression
-            DataSetCollinearity = DataSet.drop(columns=['depth', 'table', 'y', 'z'])
-            self.DataSetLoaded = DataSetCollinearity
-        if CategoricalFileter: #For xgboost
-            DataSet_xgb=DataSet
-            DataSet_xgb['cut'] = pd.Categorical(DataSet['cut'], categories=['Fair', 'Good', 'Very Good', 'Ideal', 'Premium'], ordered=True)
-            DataSet_xgb['color'] = pd.Categorical(DataSet['color'], categories=['D', 'E', 'F', 'G', 'H', 'I', 'J'], ordered=True)
-            DataSet_xgb['clarity'] = pd.Categorical(DataSet['clarity'], categories=['IF', 'VVS1', 'VVS2', 'VS1', 'VS2', 'SI1', 'SI2', 'I1'], ordered=True)
-            self.DataSetLoaded = DataSet_xgb
-
-    def SaveModel(self,model,nameToSave):
-        with open('/home/elios/Desktop/xteam_git/xtream-ai-assignment-developer/LinearRegression.pkl','wb') as f:
-            pickle.dump(model,f)
-
-    def TrainTestSplit(self,Dummy=False):
-        if Dummy:
-            DataSet = pd.get_dummies(self.DataSetLoaded, columns=['cut', 'color', 'clarity'], drop_first=True)
+        if PerformancePath == "":
+            self.ModelPerformanceFilePath = os.path.join(generalDirectory,"data/ModelPerformance.csv")
         else:
-            DataSet=self.DataSetLoaded
-        x=DataSet.drop(columns='price')
-        y=DataSet.price
-        return (train_test_split(x, y, test_size=0.2, random_state=42))
+            self.ModelPerformanceFilePath = PerformancePath
+
+       
+        self.performanceDict=dict.fromkeys(["DATE","NAME", "MAE","R2_SCORE"])
+
+
 
     def LinearRegression(self):
-        self.LoadDataset(CollinearityFilter=True,CategoricalFileter=False)
-        x_train,x_test,y_train,y_test = self.TrainTestSplit(Dummy=True)
+        DatasetLoaded = LoadDataset_(self.DataSetOriginal,CollinearityFilter=True)
+        x_train,x_test,y_train,y_test = TrainTestSplit_(DatasetLoaded,Dummy=True)
         y_train_log = np.log(y_train)
         reg = LinearRegression()
         reg.fit(x_train, y_train_log)
         pred_log= reg.predict(x_test)
         pred= np.exp(pred_log)
+        try:
+            MAE=round(mean_absolute_error(y_test, pred), 2)
+            R2_score=round(r2_score(y_test, pred), 4)
+            self.performanceDict["NAME"] = "LinearRegression"
+            self.performanceDict["DATE"] = time.ctime(time.time())
+            self.performanceDict["MAE"] = MAE
+            self.performanceDict["R2_SCORE"] = R2_score        
+            PerformanceFile_(self.ModelPerformanceFilePath,self.performanceDict)
+        except Exception as e: 
+            print(e)
 
-        MAE=round(mean_absolute_error(y_test, pred), 2)
-        R2_score=round(r2_score(y_test, pred), 4)
-        print(MAE)
-        print(R2_score)
+    def PolinomialRegression(self):
+        DatasetLoaded=LoadDataset_(self.DataSetOriginal,CollinearityFilter=True)
+        x_train,x_test,y_train,y_test = TrainTestSplit_(DatasetLoaded,Dummy=True)
+
+        y_train_log = np.log(y_train)
+        # Create polynomial features with degree 3 for Test and Train input dataset
+        polynomial_features = PolynomialFeatures(degree=3)
+        x_train_poly = polynomial_features.fit_transform(x_train)
+        x_test_poly = polynomial_features.fit_transform(x_test)
+        poliReg = LinearRegression()
+        poliReg.fit(x_train_poly,y_train_log)
+        poly_pred_log = poliReg.predict(x_test_poly)
+        poly_pred = np.exp(poly_pred_log)
+
+        try:
+            MAE=round(mean_absolute_error(y_test, poly_pred), 2)
+            R2_score = round(r2_score(y_test, poly_pred), 4)
+            self.performanceDict["NAME"] = "PolinomialRegression"
+            self.performanceDict["DATE"] = time.ctime(time.time())
+            self.performanceDict["MAE"] = MAE
+            self.performanceDict["R2_SCORE"] = R2_score        
+            PerformanceFile_(self.ModelPerformanceFilePath,self.performanceDict)
+        except Exception as e: 
+            print(e)
+
+
+
+    def LassoCVRegression(self):
+        DatasetLoaded=LoadDataset_(self.DataSetOriginal,CollinearityFilter=True)
+        x_train,x_test,y_train,y_test = TrainTestSplit_(DatasetLoaded,Dummy=True,StandarScaler=True)
+        lasso_model = LassoCV()
+        lasso_model.fit(x_train, y_train)
+        lassoPred = lasso_model.predict(x_test)
+        try:
+            MAE=round(mean_absolute_error(y_test, lassoPred), 2)
+            R2_score=round(r2_score(y_test, lassoPred), 4)
+            self.performanceDict["NAME"] = "LassoCVRegression"
+            self.performanceDict["DATE"] = time.ctime(time.time())
+            self.performanceDict["MAE"] = MAE
+            self.performanceDict["R2_SCORE"] = R2_score
+            PerformanceFile_(self.ModelPerformanceFilePath,self.performanceDict)
+        except Exception as e: 
+            print(e)
+
+
+
+    def GradientBoosting(self,OptunaHyperTuning=False):
+
+        DatasetLoaded = LoadDataset_(self.DataSetOriginal,CollinearityFilter=False,CategoricalFileter=True)
+        self.x_train_xbg,x_test_xbg,self.y_train_xbg,y_test_xbg = TrainTestSplit_(DatasetLoaded,Dummy=False,StandarScaler=False)
+        print(self.x_train_xbg)
+
+        if OptunaHyperTuning:
+            study = optuna.create_study(direction='minimize', study_name='Diamonds XGBoost')
+            study.optimize(self.objective, n_trials=100)
+            xgb_opt = xgboost.XGBRegressor(**study.best_params, enable_categorical=True, random_state=42)
+            xgb_opt.fit(self.x_train_xbg, self.y_train_xbg)
+            xgb_opt_pred = xgb_opt.predict(x_test_xbg)
+            try:
+                MAE = round(mean_absolute_error(y_test_xbg, xgb_opt_pred), 2)
+                R2_score = round(r2_score(y_test_xbg, xgb_opt_pred), 4)
+                self.performanceDict["NAME"] = "GradientBoosting_HyperTuning"
+                self.performanceDict["DATE"] = time.ctime(time.time())
+                self.performanceDict["MAE"] = MAE
+                self.performanceDict["R2_SCORE"] = R2_score        
+                PerformanceFile_(self.ModelPerformanceFilePath,self.performanceDict)
+                SaveModel(xgb_opt,self.performanceDict["NAME"])
+            except Exception as e: 
+                print(e)
+
+            
+        else:
+            xgb = xgboost.XGBRegressor(enable_categorical=True, random_state=42)
+            xgb.fit(self.x_train_xbg, self.y_train_xbg)
+            print(self.x_train_xbg)
+            xgb_pred = xgb.predict(x_test_xbg)
+            try:
+                MAE = round(mean_absolute_error(y_test_xbg, xgb_pred), 2)
+                R2_score = round(r2_score(y_test_xbg, xgb_pred), 4)
+                self.performanceDict["NAME"] = "GradientBoosting"
+                self.performanceDict["DATE"]= time.ctime(time.time())
+                self.performanceDict["MAE"]= MAE
+                self.performanceDict["R2_SCORE"]= R2_score        
+                PerformanceFile_(self.ModelPerformanceFilePath,self.performanceDict)
+                SaveModel(xgb,self.performanceDict["NAME"])
+            except Exception as e: 
+                print(e)
+    
+
 
     def objective(self,trial: optuna.trial.Trial) -> float:
         # Define hyperparameters to tune
@@ -95,40 +182,11 @@ class AutomatedPipeline2():
 
 
 
-
-
-
-
-    def GradientBoosting(self,OptunaHyperTuning=False):
-        self.LoadDataset(CollinearityFilter=False,CategoricalFileter=True)
-        self.x_train_xbg,x_test_xbg,self.y_train_xbg,y_test_xbg = self.TrainTestSplit(Dummy=False)
-        print(self.x_train_xbg)
-        if OptunaHyperTuning:
-            study = optuna.create_study(direction='minimize', study_name='Diamonds XGBoost')
-            study.optimize(self.objective, n_trials=100)
-            xgb_opt = xgboost.XGBRegressor(**study.best_params, enable_categorical=True, random_state=42)
-            xgb_opt.fit(self.x_train_xbg, self.y_train_xbg)
-            xgb_opt_pred = xgb_opt.predict(x_test_xbg)
-            MAE=round(mean_absolute_error(y_test_xbg, xgb_opt_pred), 2)
-            R2_score=round(r2_score(y_test_xbg, xgb_opt_pred), 4)
-            print(MAE)
-            print(R2_score)
-        else:
-            xgb = xgboost.XGBRegressor(enable_categorical=True, random_state=42)
-            xgb.fit(self.x_train_xbg, self.y_train_xbg)
-            xgb_pred = xgb.predict(x_test_xbg)
-            MAE=round(mean_absolute_error(y_test_xbg, xgb_pred), 2)
-            R2_score=round(r2_score(y_test_xbg, xgb_pred), 4)
-            print(MAE)
-            print(R2_score)
     
-    
-
-
-
-        
 if __name__ == '__main__':
-    Pipeline=AutomatedPipeline2("/home/elios/Desktop/xteam_git/xtream-ai-assignment-developer/data/diamonds.csv",SaveModel=True)
+    Pipeline=ModelRegression()
     #Pipeline.LinearRegression()
-    Pipeline.GradientBoosting(OptunaHyperTuning=True)
+    Pipeline.GradientBoosting()
+    #Pipeline.PolinomialRegression()
+    #Pipeline.LassoCVRegression()
 

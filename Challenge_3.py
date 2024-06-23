@@ -7,6 +7,7 @@
 import cherrypy 
 import pandas as pd
 import pickle
+from API_CommonFunction import *
 
 
 
@@ -19,7 +20,7 @@ class RestApi(object):
         self.similarityLabel=similarity_label
 
         #parameter that nned to be used for the regression
-        regression_labels=["carat","cut","color","clarity","x"]
+        regression_labels=["carat","cut","color","clarity","depth","table","x","y","z"]
         regression_labels.sort()
         self.regressionLabel=regression_labels
 
@@ -29,8 +30,11 @@ class RestApi(object):
 
 
         #Load Predictive Model
-        with open('/home/elios/Desktop/xteam_git/xtream-ai-assignment-developer/LinearRegression.pkl', 'rb') as f:
+        with open('/home/elios/Desktop/xteam_git/xtream-ai-assignment-developer/Models/GradientBoosting.pkl', 'rb') as f:
             self.RegressionModel = pickle.load(f)
+
+
+
 
     def GET(self,*uri,**params):
         if uri[0]=='regression':
@@ -38,7 +42,7 @@ class RestApi(object):
             key.sort()
             if (key==self.regressionLabel):
                 price=self.Regression(params)
-                return price
+                return str(price)
             else:
                 return "parameter input error"
 
@@ -54,19 +58,41 @@ class RestApi(object):
             return "uri not correct"
     
     # the regression is done with the best model of 
-    def Regression(self,params):
-        params["carat"]=float(params["carat"])
-        params["x"]=float(params["x"])
-        print(params)
     
+    
+    def Regression(self,params):
+       DataSet=CreateDataSet(params)
+       regressionModel = LoadModel()
+       price=regressionModel.predict(DataSet)
+       print(price)
+       return price[0]
+       
+
+
+
+
+
+
+
+
     def SimilaritySearch(self,params):
-        itemNumber2search=int(params["number"])
-        carat=float(params["carat"])
-        cut=params["cut"]
-        color=params["color"]
-        clarity=params["clarity"]
-        miniDataSet=self.DataSet[(self.DataSet.cut==cut)&(self.DataSet.color==color)&(self.DataSet.clarity==clarity)]
-        miniDataSet=miniDataSet.iloc[(miniDataSet['carat']-carat).abs().argsort()[:itemNumber2search]]
+
+        errorFlag , errorParameter = CheckParamaterSimilarity(self.DataSet,params)
+        print(errorFlag)
+
+        if errorFlag:
+            strinError = "Error with " + errorParameter + " parameters input"
+            return strinError
+        
+        itemNumber2search = int(params["number"])
+        carat = float(params["carat"])
+        cut = params["cut"]
+        color = params["color"]
+        clarity = params["clarity"]
+
+        miniDataSet = self.DataSet[(self.DataSet.cut==cut)&(self.DataSet.color==color)&(self.DataSet.clarity==clarity)]
+        miniDataSet = miniDataSet.iloc[(miniDataSet['carat']-carat).abs().argsort()[:itemNumber2search]]
+
         if miniDataSet.empty:
             strinError="No match fund"
             return strinError
