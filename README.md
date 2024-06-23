@@ -85,9 +85,14 @@ At first we need to modify the configuarion.json file.
 
 ```json
 {
-  "Diamond_csv_path" : "",                                         Path of the Diamond.csv for traing. If not setted the default path is used
-  "Performance_csv_Path" : "/home/elios/Desktop/performance.csv",  Path of the Performace,csv for save the model's performance. If not setted default path is used
-  "Models_to_Perform" : ["LinearRegression",			   Model that we want to perform. We use : LinearRegression,PolinomialRegression,LassoCVRegression,GradientBoosting,GradientBoosting_HyperTuning
+  "Diamond_csv_path" : "",                        Path of the Diamond.csv for traing. If not setted the default path is used
+  "Performance_csv_Path" : ,                      Path of the Performace,csv for save the model's performance. If not setted default path is used
+  "Models_to_Perform" : ["LinearRegressi,         Model that we want to perform. We use : LinearRegression,PolinomialRegression,LassoCVRegression,GradientBoosting,GradientBoosting_HyperTuning
 			"GradientBoosting"]
 }
  
+One json file is setted we run the python script
+```
+python3 /path/to/AutomationPipeline.py
+
+```
