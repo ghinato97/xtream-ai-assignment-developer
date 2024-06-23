@@ -90,7 +90,7 @@ At first we need to modify the configuarion.json file.
   "Models_to_Perform" : ["LinearRegressi,         Model that we want to perform. We use : LinearRegression,PolinomialRegression,LassoCVRegression,GradientBoosting,GradientBoosting_HyperTuning
 			"GradientBoosting"]
 }
- 
+```
 One json file is setted we run the python script
 ```
 python3 /path/to/AutomationPipeline.py
