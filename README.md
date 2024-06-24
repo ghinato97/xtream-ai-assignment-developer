@@ -113,4 +113,4 @@ http://127.0.0.1:8090/regression??carat=1.1&cut=Ideal&color=H&clarity=SI2&depth=
 Insted for the similar samples with need the uri "similar" with the proper parameter ( here the order of the parameter is not relevant)
 
 ```
-http://127.0.0.1:8090/similar?cut=Ideal&clarity=SI2&color=H
+http://127.0.0.1:8090/similar/?carat=1.1&cut=Ideal&color=H&clarity=SI2&number=1
