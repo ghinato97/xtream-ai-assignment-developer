@@ -82,7 +82,7 @@ pip install -r /path/to/requirements.txt
 
 I merged the challenge 1 and 2 in only one script that is AutomationPipeline.py
 
-At first we need to modify the configuarion.json file.
+At first we need to modify the configuration.json file.
 
 ```json
 {
