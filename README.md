@@ -103,3 +103,14 @@ For challenge 3 run the command:
 python3 /path/to/Challenge_3.py
 
 ```
+The resources will be served in the localhost at the port 8090 , in my case at http://127.0.0.1:8090
+For the price prediction we need to use the uri "regression" with the proper parameter as show in the example.
+**The parameters order is very important**
+```
+http://127.0.0.1:8090/regression??carat=1.1&cut=Ideal&color=H&clarity=SI2&depth=1&table=12&x=6.61&y=7&z=4
+
+```
+Insted for the similar samples with need the uri "similar" with the proper parameter ( here the order of the parameter is not relevant)
+
+```
+http://127.0.0.1:8090/similar?cut=Ideal&clarity=SI2&color=H
